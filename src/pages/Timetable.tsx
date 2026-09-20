@@ -1,4 +1,4 @@
-import { Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
+import { Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Box } from '@mui/material';
 
 const TIMETABLE = [
   { id: 1, date: '15.10.2026', time: '18:00', club: 'Баскетбол', room: 'Ауд. 301' },
@@ -12,31 +12,90 @@ const TIMETABLE = [
 
 export default function Timetable() {
   return (
-    <div>
-      <Typography variant="h4" gutterBottom>Расписание занятий</Typography>
-      <TableContainer component={Paper}>
+    <Box>
+      <Box sx={{ mb: 4 }}>
+        <Typography
+          variant="h4"
+          sx={{ color: '#4A2428', mb: 0.8 }}
+        >
+          Расписание занятий
+        </Typography>
+
+        <Typography
+          variant="body1"
+          sx={{ color: '#806F70' }}
+        >
+          Предстоящие занятия студенческих кружков
+        </Typography>
+      </Box>
+
+      <TableContainer
+        component={Paper}
+        elevation={0}
+        sx={{
+          border: '1px solid #E8DDD2',
+          borderRadius: 1.5,
+          overflow: 'hidden',
+        }}
+      >
         <Table>
           <TableHead>
-            <TableRow>
-              <TableCell><b>Дата</b></TableCell>
-              <TableCell><b>Время</b></TableCell>
-              <TableCell><b>Кружок</b></TableCell>
-              <TableCell><b>Аудитория</b></TableCell>
+            <TableRow
+              sx={{
+                backgroundColor: '#76232F',
+              }}
+            >
+              <TableCell sx={{ color: '#fff', fontWeight: 700 }}>
+                Дата
+              </TableCell>
+
+              <TableCell sx={{ color: '#fff', fontWeight: 700 }}>
+                Время
+              </TableCell>
+
+              <TableCell sx={{ color: '#fff', fontWeight: 700 }}>
+                Кружок
+              </TableCell>
+
+              <TableCell sx={{ color: '#fff', fontWeight: 700 }}>
+                Аудитория
+              </TableCell>
             </TableRow>
           </TableHead>
+
           <TableBody>
             {TIMETABLE.map((row) => (
-              <TableRow key={row.id}>
+              <TableRow
+                key={row.id}
+                sx={{
+                  '&:nth-of-type(even)': {
+                    backgroundColor: '#FBF6F0',
+                  },
+
+                  '&:hover': {
+                    backgroundColor: '#F3E8DF',
+                  },
+                }}
+              >
                 <TableCell>{row.date}</TableCell>
                 <TableCell>{row.time}</TableCell>
-                <TableCell>{row.club}</TableCell>
+
+                <TableCell
+                  sx={{
+                    fontWeight: 600,
+                    color: '#5F222C',
+                  }}
+                >
+                  {row.club}
+                </TableCell>
+
                 <TableCell>{row.room}</TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
-    </div>
+    </Box>
   );
 }
 
