@@ -1,4 +1,5 @@
-import { Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Box } from '@mui/material';
+import { Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Box } from '@mui/material';
+import { Link } from 'react-router-dom';
 
 const TIMETABLE = [
   { id: 1, date: '15.10.2026', time: '18:00', club: 'Баскетбол', room: 'Ауд. 301' },
@@ -60,6 +61,13 @@ export default function Timetable() {
               <TableCell sx={{ color: '#fff', fontWeight: 700 }}>
                 Аудитория
               </TableCell>
+
+              <TableCell
+                align="right"
+                sx={{ color: '#fff', fontWeight: 700 }}
+              >
+                Действие
+              </TableCell>
             </TableRow>
           </TableHead>
 
@@ -90,6 +98,26 @@ export default function Timetable() {
                 </TableCell>
 
                 <TableCell>{row.room}</TableCell>
+
+                <TableCell align="right">
+                  <Button
+                    component={Link}
+                    to={`/attendance/${row.id}`}
+                    variant="outlined"
+                    size="small"
+                    sx={{
+                      color: '#76232F',
+                      borderColor: '#76232F',
+
+                      '&:hover': {
+                        borderColor: '#5A1823',
+                        backgroundColor: '#F7ECE7',
+                      },
+                    }}
+                  >
+                    Журнал
+                  </Button>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
