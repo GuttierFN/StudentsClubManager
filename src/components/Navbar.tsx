@@ -57,7 +57,6 @@ export default function Navbar() {
               variant="h6"
               sx={{
                 fontWeight: 700,
-                letterSpacing: '-0.2px',
               }}
             >
               Управление студкружками
@@ -77,17 +76,12 @@ export default function Navbar() {
               to="/"
               sx={{
                 color: '#FFFFFF',
-                fontSize: 13,
                 minWidth: 'auto',
                 px: { xs: 1, md: 2 },
                 borderRadius: 0,
                 borderBottom: isActive('/')
                   ? '2px solid #E6C98F'
                   : '2px solid transparent',
-
-                '&:hover': {
-                  backgroundColor: 'rgba(255,255,255,0.08)',
-                },
               }}
             >
               Кружки
@@ -98,17 +92,12 @@ export default function Navbar() {
               to="/timetable"
               sx={{
                 color: '#FFFFFF',
-                fontSize: 13,
                 minWidth: 'auto',
                 px: { xs: 1, md: 2 },
                 borderRadius: 0,
                 borderBottom: isActive('/timetable')
                   ? '2px solid #E6C98F'
                   : '2px solid transparent',
-
-                '&:hover': {
-                  backgroundColor: 'rgba(255,255,255,0.08)',
-                },
               }}
             >
               Расписание
@@ -119,17 +108,12 @@ export default function Navbar() {
               to="/attendance"
               sx={{
                 color: '#FFFFFF',
-                fontSize: 13,
                 minWidth: 'auto',
                 px: { xs: 1, md: 2 },
                 borderRadius: 0,
-                borderBottom: isActive('/attendance')
+                borderBottom: location.pathname.startsWith('/attendance')
                   ? '2px solid #E6C98F'
                   : '2px solid transparent',
-
-                '&:hover': {
-                  backgroundColor: 'rgba(255,255,255,0.08)',
-                },
               }}
             >
               Журнал
