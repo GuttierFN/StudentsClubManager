@@ -68,15 +68,6 @@ const theme = createTheme({
         body: {
           backgroundColor: '#F8F2E9',
         },
-
-        '*': {
-          boxSizing: 'border-box',
-        },
-
-        '::selection': {
-          backgroundColor: '#76232F',
-          color: '#FFFFFF',
-        },
       },
     },
 
@@ -85,18 +76,9 @@ const theme = createTheme({
         root: {
           borderRadius: 6,
           boxShadow: 'none',
-          padding: '9px 18px',
 
           '&:hover': {
             boxShadow: 'none',
-          },
-        },
-
-        containedPrimary: {
-          backgroundColor: '#76232F',
-
-          '&:hover': {
-            backgroundColor: '#5A1823',
           },
         },
       },
@@ -145,6 +127,7 @@ export default function App() {
             <Route path="/" element={<ClubsList />} />
             <Route path="/clubs/:id" element={<ClubDetails />} />
             <Route path="/timetable" element={<Timetable />} />
+            <Route path="/attendance/:id" element={<Attendance />} />
             <Route path="/attendance" element={<Attendance />} />
           </Routes>
         </Container>
