@@ -23,3 +23,18 @@
    npm run dev
    ```
 3. Откройте в браузере ссылку http://localhost:5173
+
+## Модель данных (Backend)
+- **Club (Кружки)**: id, name, teacher, description. Связан с расписанием (One-to-Many).
+- **Student (Студенты)**: id, full_name, group_name.
+- **Timetable (Расписание)**: id, club_id (FK), date, time, room.
+
+## Инструкция по запуску Backend
+1. Установите зависимости: `pip install -r backend/requirements.txt`
+2. Создайте базу данных PostgreSQL и укажите путь к ней в файле `backend/.env`.
+3. Запустите сервер: 
+   ```bash
+   cd backend
+   uvicorn main:app --reload
+   ```
+Документация API доступна по адресу: http://127.0.0.1:8000/docs
