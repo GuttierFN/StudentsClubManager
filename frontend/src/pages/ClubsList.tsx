@@ -31,7 +31,6 @@ export default function ClubsList() {
 
   return (
     <Box>
-      {/* Заголовок страницы и поиск */}
       <Box
         sx={{
           mb: 4,
@@ -76,7 +75,6 @@ export default function ClubsList() {
         />
       </Box>
 
-      {/* Состояния загрузки, ошибки и пустых данных */}
       {isLoading && (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
           <CircularProgress sx={{ color: '#76232F' }} />
@@ -95,7 +93,6 @@ export default function ClubsList() {
         </Alert>
       )}
 
-      {/* Карточки */}
       {!isLoading && !isError && filteredClubs.length > 0 && (
         <Fade in timeout={500}>
           <Grid container spacing={2.5}>
@@ -129,7 +126,6 @@ export default function ClubsList() {
                         gap: 1.5,
                       }}
                     >
-                      {/* Иконка */}
                       <Box
                         sx={{
                           flexShrink: 0,
