@@ -1,3 +1,4 @@
+import EnrollForm from '../features/EnrollForm/EnrollForm';
 import { Typography, Paper, Button, List, ListItem, ListItemText, Divider, Box, Stack, Chip } from '@mui/material';
 import { Link, useParams } from 'react-router-dom';
 
@@ -135,18 +136,7 @@ export default function ClubDetails() {
               />
             </Stack>
 
-            <Button
-              variant="contained"
-              sx={{
-                mt: 3,
-                backgroundColor: '#76232F',
-                '&:hover': {
-                  backgroundColor: '#5A1823',
-                },
-              }}
-            >
-              Подать заявку на вступление
-            </Button>
+            <EnrollForm />
           </Box>
 
           <Box
