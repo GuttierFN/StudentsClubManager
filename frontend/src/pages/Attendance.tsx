@@ -1,18 +1,7 @@
-import { Typography, Paper, Button, Box, Divider, Chip, Stack, FormControl, InputLabel, Select, MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
+import { Typography, Paper, Button, Box, Divider, Chip, Stack, FormControl, InputLabel, Select, MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Alert, Collapse } from '@mui/material';
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-
-const SESSIONS = [
-  { id: 1, date: '15.10.2026', time: '18:00', club: 'Баскетбол', room: 'Ауд. 301', teacher: 'Гутиеррес - Камблор А. А.' },
-  { id: 2, date: '16.10.2026', time: '16:00', club: 'Воллейбол', room: 'Ауд. 101', teacher: 'Дышенко В. С.' },
-  { id: 3, date: '15.10.2026', time: '15:30', club: 'Шахматы', room: 'Ауд. 410', teacher: 'Бобров А. Д.' },
-  { id: 4, date: '25.10.2026', time: '17:00', club: 'Лёгкая атлетика', room: 'Ауд. 201', teacher: 'Махонин И. Д.' },
-  { id: 5, date: '20.10.2026', time: '20:00', club: 'Футбол', room: 'Ауд. 212', teacher: 'Сенов Д. C.' },
-  { id: 6, date: '18.10.2026', time: '19:00', club: 'Пение', room: 'Ауд. 310', teacher: 'Манолиу Д. Д.' },
-  { id: 7, date: '16.10.2026', time: '16:30', club: 'Танцы', room: 'Ауд. 202', teacher: 'Гутиеррес - Камблор А. А.' },
-];
-
-const STUDENTS = ['Печерский Д. А.', 'Гутник Е. И.', 'Еременко Г. К.', 'Орлов А. А.', 'Гасанов К. У.', 'Капранов В. С.', 'Лазарев Р. Н.'];
+import { SESSIONS, INITIAL_STUDENTS } from '../entities/club/data';
 
 export default function Attendance() {
   const { id } = useParams();
@@ -25,25 +14,30 @@ export default function Attendance() {
     useState(initialSession.id);
 
   const [attendance, setAttendance] = useState<Record<string, boolean>>({
-    'Печерский Д. А.': true,
+    'Гасанов К. У.': false,
     'Гутник Е. И.': false,
     'Еременко Г. К.': true,
-    'Орлов А. А.': true,
-    'Гасанов К. У.': false,
+    'Орлов А. Н.': true,
+    'Печерский Д. А.': true,
     'Капранов В. С.': true,
     'Лазарев Р. Н.': true,
   });
+
+  const [isSaved, setIsSaved] = useState(false);
 
   const selectedSession =
     SESSIONS.find((session) => session.id === selectedSessionId) ?? SESSIONS[0];
 
   const presentCount = Object.values(attendance).filter(Boolean).length;
-
-  const absentCount =
-    STUDENTS.length - presentCount;
+  const absentCount = INITIAL_STUDENTS.length - presentCount;
 
   const toggleAttendance = (student: string) => {
-    setAttendance((prev) => ({...prev, [student]: !prev[student]}));
+    setAttendance((prev) => ({ ...prev, [student]: !prev[student] }));
+    setIsSaved(false);
+  };
+
+  const handleSave = () => {
+    setIsSaved(true);
   };
 
   return (
@@ -104,9 +98,8 @@ export default function Attendance() {
               value={selectedSessionId}
               label="Занятие"
               onChange={(event) => {
-                setSelectedSessionId(
-                  Number(event.target.value),
-                );
+                setSelectedSessionId(Number(event.target.value));
+                setIsSaved(false);
               }}
             >
               {SESSIONS.map((session) => (
@@ -114,8 +107,7 @@ export default function Attendance() {
                   key={session.id}
                   value={session.id}
                 >
-                  {session.club} — {session.date} —{' '}
-                  {session.time}
+                  {session.club} — {session.date} — {session.time}
                 </MenuItem>
               ))}
             </Select>
@@ -150,8 +142,7 @@ export default function Attendance() {
             mb: 0.5,
           }}
         >
-          {selectedSession.date} · {selectedSession.time} ·{' '}
-          {selectedSession.room}
+          {selectedSession.date} · {selectedSession.time} · {selectedSession.room}
         </Typography>
 
         <Typography
@@ -184,7 +175,7 @@ export default function Attendance() {
           />
 
           <Chip
-            label={`Всего: ${STUDENTS.length}`}
+            label={`Всего: ${INITIAL_STUDENTS.length}`}
             sx={{
               backgroundColor: '#F1E9DF',
               color: '#6D5B4E',
@@ -193,6 +184,12 @@ export default function Attendance() {
           />
         </Stack>
       </Paper>
+
+      <Collapse in={isSaved}>
+        <Alert severity="success" sx={{ mb: 3 }}>
+          Данные о посещаемости для занятия «{selectedSession.club}» успешно сохранены!
+        </Alert>
+      </Collapse>
 
       {/* Журнал */}
       <Paper
@@ -264,8 +261,8 @@ export default function Attendance() {
             </TableHead>
 
             <TableBody>
-              {STUDENTS.map((student, index) => {
-                const isPresent = attendance[student];
+              {INITIAL_STUDENTS.map((student, index) => {
+                const isPresent = Boolean(attendance[student]);
 
                 return (
                   <TableRow
@@ -302,9 +299,7 @@ export default function Attendance() {
 
                     <TableCell align="right">
                       <Button
-                        onClick={() =>
-                          toggleAttendance(student)
-                        }
+                        onClick={() => toggleAttendance(student)}
                         size="small"
                         variant="outlined"
                         sx={{
@@ -362,14 +357,16 @@ export default function Attendance() {
         >
           <Typography
             sx={{
-              color: '#76686A',
+              color: isSaved ? '#40613F' : '#76686A',
+              fontWeight: isSaved ? 600 : 400,
             }}
           >
-            Изменения пока не сохранены
+            {isSaved ? '✓ Все изменения сохранены' : 'Изменения пока не сохранены'}
           </Typography>
 
           <Button
             variant="contained"
+            onClick={handleSave}
             sx={{
               backgroundColor: '#76232F',
 
@@ -398,4 +395,3 @@ export default function Attendance() {
     </Box>
   );
 }
- 
