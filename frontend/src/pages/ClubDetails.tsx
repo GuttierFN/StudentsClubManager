@@ -1,23 +1,29 @@
-import EnrollForm from '../features/EnrollForm/EnrollForm';
-import { Typography, Paper, Button, List, ListItem, ListItemText, Divider, Box, Stack, Chip } from '@mui/material';
+import { useState } from 'react';
+import { Typography, Paper, Button, List, ListItem, ListItemText, Divider, Box, Stack, Chip, Alert } from '@mui/material';
 import { Link, useParams } from 'react-router-dom';
-
-const CLUBS = [
-  { id: 1, name: 'Футбол', teacher: 'Сенов Д. C.', icon: '⚽' },
-  { id: 2, name: 'Баскетбол', teacher: 'Гутиеррес - Камблор А. А.', icon: '🏀' },
-  { id: 3, name: 'Пение', teacher: 'Манолиу Д. Д.', icon: '♪' },
-  { id: 4, name: 'Лёгкая атлетика', teacher: 'Махонин И. Д.', icon: '🏃' },
-  { id: 5, name: 'Воллейбол', teacher: 'Дышенко В. С.', icon: '🏐' },
-  { id: 6, name: 'Шахматы', teacher: 'Бобров А. Д.', icon: '♟' },
-  { id: 7, name: 'Танцы', teacher: 'Гутиеррес - Камблор А. А.', icon: '🕺' },
-];
-
-const STUDENTS = ['Гасанов К. У.', 'Гутник Е. И.', 'Еременко Г. К.', 'Орлов А. Н.', 'Печерский Д. А.', 'Капранов В. С.', 'Лазарев Р. Н.' ];
+import EnrollForm from '../features/EnrollForm/EnrollForm';
+import { CLUBS, INITIAL_STUDENTS } from '../entities/club/data';
 
 export default function ClubDetails() {
   const { id } = useParams();
+  const [students, setStudents] = useState<string[]>(INITIAL_STUDENTS);
 
-  const club = CLUBS.find((item) => item.id === Number(id)) ?? CLUBS[0];
+  const club = CLUBS.find((item) => item.id === Number(id));
+
+  if (!club) {
+    return (
+      <Box>
+        <Button component={Link} to="/" sx={{ color: '#76232F', px: 0, mb: 2 }}>
+          ← Вернуться к каталогу
+        </Button>
+        <Alert severity="error">Запрашиваемый кружок не найден.</Alert>
+      </Box>
+    );
+  }
+
+  const handleEnrollStudent = (newStudent: string) => {
+    setStudents((prev) => [...prev, newStudent]);
+  };
 
   return (
     <Box>
@@ -118,7 +124,7 @@ export default function ClubDetails() {
               sx={{ mt: 3 }}
             >
               <Chip
-                label={`Участников: ${STUDENTS.length}`}
+                label={`Участников: ${students.length}`}
                 sx={{
                   backgroundColor: '#F1E9DF',
                   color: '#6D5B4E',
@@ -136,7 +142,7 @@ export default function ClubDetails() {
               />
             </Stack>
 
-            <EnrollForm />
+            <EnrollForm onEnroll={handleEnrollStudent} />
           </Box>
 
           <Box
@@ -234,7 +240,7 @@ export default function ClubDetails() {
           </Box>
 
           <Chip
-            label={`${STUDENTS.length} человек`}
+            label={`${students.length} человек`}
             sx={{
               backgroundColor: '#F3E3D8',
               color: '#76232F',
@@ -245,39 +251,45 @@ export default function ClubDetails() {
 
         <Divider />
 
-        <List disablePadding>
-          {STUDENTS.map((student, index) => (
-            <Box key={student}>
-              <ListItem
-                sx={{
-                  px: { xs: 3, md: 4 },
-                  py: 1.5,
-                }}
-              >
-                <Box
+        {students.length === 0 ? (
+          <Box sx={{ p: 3 }}>
+            <Alert severity="info">В этом кружке пока нет участников.</Alert>
+          </Box>
+        ) : (
+          <List disablePadding>
+            {students.map((student, index) => (
+              <Box key={`${student}-${index}`}>
+                <ListItem
                   sx={{
-                    width: 34,
-                    color: '#A18484',
-                    fontSize: 14,
-                    flexShrink: 0,
+                    px: { xs: 3, md: 4 },
+                    py: 1.5,
                   }}
                 >
-                  {String(index + 1).padStart(2, '0')}
-                </Box>
+                  <Box
+                    sx={{
+                      width: 34,
+                      color: '#A18484',
+                      fontSize: 14,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {String(index + 1).padStart(2, '0')}
+                  </Box>
 
-                <ListItemText
-                  primary={student}
-                  primaryTypographyProps={{
-                    color: '#443335',
-                    fontWeight: 500,
-                  }}
-                />
-              </ListItem>
+                  <ListItemText
+                    primary={student}
+                    primaryTypographyProps={{
+                      color: '#443335',
+                      fontWeight: 500,
+                    }}
+                  />
+                </ListItem>
 
-              {index < STUDENTS.length - 1 && <Divider />}
-            </Box>
-          ))}
-        </List>
+                {index < students.length - 1 && <Divider />}
+              </Box>
+            ))}
+          </List>
+        )}
       </Paper>
     </Box>
   );
