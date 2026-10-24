@@ -1,13 +1,19 @@
-import { AppBar, Toolbar, Typography, Button, Box, Container } from '@mui/material';
-import { Link, useLocation } from 'react-router-dom';
+import { AppBar, Toolbar, Typography, Button, Box, Container, Chip } from '@mui/material';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../features/Auth/AuthContext';
 
 export default function Navbar() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
-  const isActive = (path: string) => {
-    return location.pathname === path;
+  const isActive = (path: string) => location.pathname === path;
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
   };
-  
+
   return (
     <AppBar
       position="static"
@@ -24,6 +30,8 @@ export default function Navbar() {
             minHeight: { xs: 64, md: 72 },
             display: 'flex',
             justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 1,
           }}
         >
           {/* Логотип */}
@@ -53,22 +61,17 @@ export default function Navbar() {
               🏛
             </Box>
 
-            <Typography
-              variant="h6"
-              sx={{
-                fontWeight: 700,
-              }}
-            >
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>
               Управление студкружками
             </Typography>
           </Box>
 
-          {/* Навигация */}
+          {/* Навигация и профиль */}
           <Box
             sx={{
               display: 'flex',
               alignItems: 'center',
-              gap: { xs: 0.5, md: 1 },
+              gap: { xs: 0.5, md: 1.5 },
             }}
           >
             <Button
@@ -77,11 +80,9 @@ export default function Navbar() {
               sx={{
                 color: '#FFFFFF',
                 minWidth: 'auto',
-                px: { xs: 1, md: 2 },
+                px: { xs: 1, md: 1.5 },
                 borderRadius: 0,
-                borderBottom: isActive('/')
-                  ? '2px solid #E6C98F'
-                  : '2px solid transparent',
+                borderBottom: isActive('/') ? '2px solid #E6C98F' : '2px solid transparent',
               }}
             >
               Кружки
@@ -93,11 +94,9 @@ export default function Navbar() {
               sx={{
                 color: '#FFFFFF',
                 minWidth: 'auto',
-                px: { xs: 1, md: 2 },
+                px: { xs: 1, md: 1.5 },
                 borderRadius: 0,
-                borderBottom: isActive('/timetable')
-                  ? '2px solid #E6C98F'
-                  : '2px solid transparent',
+                borderBottom: isActive('/timetable') ? '2px solid #E6C98F' : '2px solid transparent',
               }}
             >
               Расписание
@@ -109,7 +108,7 @@ export default function Navbar() {
               sx={{
                 color: '#FFFFFF',
                 minWidth: 'auto',
-                px: { xs: 1, md: 2 },
+                px: { xs: 1, md: 1.5 },
                 borderRadius: 0,
                 borderBottom: location.pathname.startsWith('/attendance')
                   ? '2px solid #E6C98F'
@@ -118,6 +117,53 @@ export default function Navbar() {
             >
               Журнал
             </Button>
+
+            {user ? (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 1 }}>
+                <Chip
+                  label={`${user.full_name} (${user.role === 'teacher' ? 'Преп.' : 'Студ.'})`}
+                  size="small"
+                  sx={{
+                    backgroundColor: 'rgba(255,255,255,0.16)',
+                    color: '#FFFFFF',
+                    fontWeight: 600,
+                  }}
+                />
+                <Button
+                  onClick={handleLogout}
+                  variant="outlined"
+                  size="small"
+                  sx={{
+                    color: '#FFFFFF',
+                    borderColor: 'rgba(255,255,255,0.4)',
+                    '&:hover': {
+                      borderColor: '#FFFFFF',
+                      backgroundColor: 'rgba(255,255,255,0.1)',
+                    },
+                  }}
+                >
+                  Выйти
+                </Button>
+              </Box>
+            ) : (
+              <Button
+                component={Link}
+                to="/login"
+                variant="outlined"
+                size="small"
+                sx={{
+                  ml: 1,
+                  color: '#FFFFFF',
+                  borderColor: '#E6C98F',
+                  '&:hover': {
+                    borderColor: '#FFFFFF',
+                    backgroundColor: 'rgba(255,255,255,0.1)',
+                  },
+                }}
+              >
+                Войти
+              </Button>
+            )}
           </Box>
         </Toolbar>
       </Container>
