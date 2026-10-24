@@ -63,7 +63,7 @@ export default function LoginPage() {
         }}
       >
         <Typography variant="h4" sx={{ color: '#4A2428', mb: 1, textAlign: 'center' }}>
-          Авторизация
+          Добро пожаловать!
         </Typography>
         <Typography variant="body2" sx={{ color: '#806F70', mb: 3, textAlign: 'center' }}>
           Войдите в аккаунт или зарегистрируйтесь для работы с системой
@@ -107,7 +107,7 @@ export default function LoginPage() {
           {tab === 'register' && (
             <>
               <TextField
-                label="Фамилия и инициалы (например, Иванов И. И.)"
+                label="ФИО"
                 size="small"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
@@ -116,15 +116,15 @@ export default function LoginPage() {
               />
 
               <FormControl size="small" fullWidth>
-                <InputLabel>Роль в системе</InputLabel>
+                <InputLabel>Кто вы?</InputLabel>
                 <Select
                   value={role}
-                  label="Роль в системе"
+                  label="Кто вы?"
                   onChange={(e) => setRole(e.target.value as UserRole)}
                   disabled={isSubmitting}
                 >
-                  <MenuItem value="student">Студент (запись в кружки)</MenuItem>
-                  <MenuItem value="teacher">Преподаватель (ведение журнала и кружков)</MenuItem>
+                  <MenuItem value="student">Студент</MenuItem>
+                  <MenuItem value="teacher">Преподаватель</MenuItem>
                 </Select>
               </FormControl>
             </>
