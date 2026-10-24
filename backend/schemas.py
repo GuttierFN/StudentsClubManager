@@ -1,6 +1,38 @@
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field
 
+class UserRegister(BaseModel):
+    username: str = Field(..., min_length=3, max_length=50)
+    full_name: str = Field(..., min_length=3, max_length=100)
+    password: str = Field(..., min_length=6)
+    role: str = Field(default="student", pattern="^(student|teacher)$")
+
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
+class UserResponse(BaseModel):
+    id: int
+    username: str
+    full_name: str
+    role: str
+
+    class Config:
+        from_attributes = True
+
+class TokenResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    user: UserResponse
+
+class AccessTokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+class RefreshRequest(BaseModel):
+    refresh_token: str
+
 class ORMModel(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
