@@ -49,9 +49,6 @@ def create_with_conflict_check(db: Session, model, values: dict, message: str):
 def root():
     return {"message": "Students Club Manager API is running:))))))))"}
 
-
-# --- МАРШРУТЫ АУТЕНТИФИКАЦИИ И АВТОРИЗАЦИИ (ЛР4) ---
-
 @app.post("/auth/register", response_model=schemas.UserResponse, status_code=status.HTTP_201_CREATED)
 def register(user_data: schemas.UserRegister, db: Session = Depends(get_db)):
     existing = db.query(models.User).filter(models.User.username == user_data.username).first()
@@ -133,9 +130,6 @@ def logout(body: schemas.RefreshRequest, db: Session = Depends(get_db)):
 def get_me(current_user: models.User = Depends(get_current_user)):
     return current_user
 
-
-# --- КРУЖКИ (Просмотр — публично, изменение — только преподаватель) ---
-
 @app.post("/clubs/", response_model=schemas.ClubResponse, status_code=status.HTTP_201_CREATED)
 def create_club(
     payload: schemas.ClubCreate,
@@ -178,9 +172,6 @@ def delete_club(
 ):
     crud.delete(db, get_or_404(db, models.Club, club_id, "Кружок"))
 
-
-# --- СТУДЕНТЫ (Доступно авторизованным пользователям, удаление/изменение — преподавателю) ---
-
 @app.post("/students/", response_model=schemas.StudentResponse, status_code=status.HTTP_201_CREATED)
 def create_student(
     payload: schemas.StudentCreate,
@@ -222,9 +213,6 @@ def delete_student(
 ):
     crud.delete(db, get_or_404(db, models.Student, student_id, "Студент"))
 
-
-# --- РАСПИСАНИЕ (Просмотр — публично, изменение — только преподаватель) ---
-
 @app.post("/timetables/", response_model=schemas.TimetableResponse, status_code=status.HTTP_201_CREATED)
 def create_timetable(
     payload: schemas.TimetableCreate,
@@ -260,9 +248,6 @@ def delete_timetable(
     _: models.User = Depends(require_teacher),
 ):
     crud.delete(db, get_or_404(db, models.Timetable, timetable_id, "Занятие"))
-
-
-# --- ЗАПИСЬ В КРУЖКИ И ПОСЕЩАЕМОСТЬ ---
 
 @app.get("/clubs/{club_id}/students", response_model=list[schemas.StudentResponse])
 def get_club_students(club_id: int, db: Session = Depends(get_db)):
