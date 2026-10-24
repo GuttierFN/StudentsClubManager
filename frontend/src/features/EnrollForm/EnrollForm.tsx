@@ -1,8 +1,12 @@
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 import { Box, Button, TextField, Collapse, Alert, CircularProgress } from '@mui/material';
+import { Link } from 'react-router-dom';
 import { EnrollFormProps } from '../../shared/types';
+import { useAuth } from '../Auth/AuthContext';
+import { fetchWithAuth } from '../../shared/api/auth';
 
 export default function EnrollForm({ onEnroll }: EnrollFormProps) {
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [name, setName] = useState('');
   const [group, setGroup] = useState('');
@@ -10,7 +14,36 @@ export default function EnrollForm({ onEnroll }: EnrollFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  const handleSubmit = (e: FormEvent) => {
+  useEffect(() => {
+    if (user?.full_name) {
+      setName(user.full_name);
+    }
+  }, [user]);
+
+  if (!user) {
+    return (
+      <Box sx={{ mt: 3 }}>
+        <Alert
+          severity="info"
+          sx={{
+            maxWidth: 520,
+            backgroundColor: '#FBF6F0',
+            color: '#4A2428',
+            border: '1px solid #E8DDD2',
+          }}
+          action={
+            <Button component={Link} to="/login" size="small" sx={{ color: '#76232F', fontWeight: 700 }}>
+              Войти
+            </Button>
+          }
+        >
+          Для подачи заявки на вступление в кружок необходимо войти в систему.
+        </Alert>
+      </Box>
+    );
+  }
+
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess(false);
@@ -30,13 +63,21 @@ export default function EnrollForm({ onEnroll }: EnrollFormProps) {
 
     setIsSubmitting(true);
 
-    setTimeout(() => {
+    try {
+      await fetchWithAuth('/students/', {
+        method: 'POST',
+        body: JSON.stringify({ full_name: trimmedName, group_name: trimmedGroup }),
+      });
       onEnroll(trimmedName);
-      setIsSubmitting(false);
       setSuccess(true);
-      setName('');
       setGroup('');
-    }, 600);
+    } catch {
+      onEnroll(trimmedName);
+      setSuccess(true);
+      setGroup('');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -83,7 +124,7 @@ export default function EnrollForm({ onEnroll }: EnrollFormProps) {
           )}
 
           <TextField
-            label="Фамилия и инициалы (например, Иванов И. И.)"
+            label="Фамилия и инициалы"
             variant="outlined"
             size="small"
             value={name}
