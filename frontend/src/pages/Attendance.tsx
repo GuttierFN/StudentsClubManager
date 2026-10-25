@@ -75,7 +75,6 @@ export default function Attendance() {
 
   return (
     <Box>
-      {/* Заголовок */}
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" sx={{ color: '#4A2428', mb: 0.8 }}>
           Журнал посещаемости
@@ -94,7 +93,6 @@ export default function Attendance() {
         </Alert>
       )}
 
-      {/* Выбор занятия */}
       <Paper
         elevation={0}
         sx={{
@@ -131,7 +129,6 @@ export default function Attendance() {
         </Stack>
       </Paper>
 
-      {/* Информация о занятии */}
       <Paper
         elevation={0}
         sx={{
@@ -177,8 +174,7 @@ export default function Attendance() {
           Данные о посещаемости для занятия «{selectedSession.club}» успешно сохранены!
         </Alert>
       </Collapse>
-
-      {/* Журнал */}
+      
       <Paper
         elevation={0}
         sx={{
