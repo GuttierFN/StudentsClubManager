@@ -34,7 +34,7 @@ export default function Navbar() {
             gap: 1,
           }}
         >
-          {/* Логотип */}
+  
           <Box
             component={Link}
             to="/"
@@ -66,7 +66,6 @@ export default function Navbar() {
             </Typography>
           </Box>
 
-          {/* Навигация и профиль */}
           <Box
             sx={{
               display: 'flex',
