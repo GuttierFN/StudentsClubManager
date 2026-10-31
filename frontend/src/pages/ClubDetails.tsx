@@ -5,7 +5,7 @@ import EnrollForm from '../features/EnrollForm/EnrollForm';
 import { getClubIcon } from '../entities/club/data';
 import { Club, Student } from '../shared/types';
 import { apiDeleteClub, apiGetClub, apiGetClubStudents, apiUnenrollStudent, apiUpdateClub } from '../shared/api/clubs';
-import { useAuth } from '../features/Auth/AuthContext';
+import { useAuth } from "../features/EnrollForm/Auth/AuthContext";
 
 export default function ClubDetails() {
   const { id } = useParams();
