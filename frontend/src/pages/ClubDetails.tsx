@@ -1,29 +1,121 @@
-import { useState } from 'react';
-import { Typography, Paper, Button, List, ListItem, ListItemText, Divider, Box, Stack, Chip, Alert } from '@mui/material';
-import { Link, useParams } from 'react-router-dom';
+import { useState, useEffect, FormEvent } from 'react';
+import { Typography, Paper, Button, List, ListItem, ListItemText, Divider, Box, Stack, Chip, Alert, CircularProgress, Collapse, TextField } from '@mui/material';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import EnrollForm from '../features/EnrollForm/EnrollForm';
-import { CLUBS, INITIAL_STUDENTS } from '../entities/club/data';
+import { getClubIcon } from '../entities/club/data';
+import { Club, Student } from '../shared/types';
+import { apiDeleteClub, apiGetClub, apiGetClubStudents, apiUnenrollStudent, apiUpdateClub } from '../shared/api/clubs';
+import { useAuth } from '../features/Auth/AuthContext';
 
 export default function ClubDetails() {
   const { id } = useParams();
-  const [students, setStudents] = useState<string[]>(INITIAL_STUDENTS);
+  const clubId = Number(id);
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const isTeacher = user?.role === 'teacher';
 
-  const club = CLUBS.find((item) => item.id === Number(id));
+  const [club, setClub] = useState<Club | null>(null);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  if (!club) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editTeacher, setEditTeacher] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [actionError, setActionError] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    const loadDetails = async () => {
+      setIsLoading(true);
+      setError('');
+      try {
+        const [clubData, studentsData] = await Promise.all([
+          apiGetClub(clubId),
+          apiGetClubStudents(clubId),
+        ]);
+        setClub(clubData);
+        setStudents(studentsData);
+        setEditName(clubData.name);
+        setEditTeacher(clubData.teacher);
+        setEditDescription(clubData.description || '');
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Не удалось загрузить данные кружка');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadDetails();
+  }, [clubId]);
+
+  const handleEnrollStudent = (newStudent: Student) => {
+    setStudents((prev) => [...prev, newStudent]);
+  };
+
+  const handleUpdateClub = async (e: FormEvent) => {
+    e.preventDefault();
+    setActionError('');
+
+    if (!editName.trim() || !editTeacher.trim()) {
+      setActionError('Название кружка и ФИО преподавателя не могут быть пустыми');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const updated = await apiUpdateClub(clubId, {
+        name: editName.trim(),
+        teacher: editTeacher.trim(),
+        description: editDescription.trim() || null,
+      });
+      setClub(updated);
+      setIsEditing(false);
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Ошибка обновления кружка');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDeleteClub = async () => {
+    setActionError('');
+    try {
+      await apiDeleteClub(clubId);
+      navigate('/');
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Ошибка удаления кружка');
+    }
+  };
+
+  const handleUnenroll = async (studentId: number) => {
+    setActionError('');
+    try {
+      await apiUnenrollStudent(clubId, studentId);
+      setStudents((prev) => prev.filter((s) => s.id !== studentId));
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Ошибка при отчислении студента');
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
+        <CircularProgress sx={{ color: '#76232F' }} />
+      </Box>
+    );
+  }
+
+  if (error || !club) {
     return (
       <Box>
         <Button component={Link} to="/" sx={{ color: '#76232F', px: 0, mb: 2 }}>
           ← Вернуться к каталогу
         </Button>
-        <Alert severity="error">Запрашиваемый кружок не найден.</Alert>
+        <Alert severity="error">{error || 'Запрашиваемый кружок не найден.'}</Alert>
       </Box>
     );
   }
-
-  const handleEnrollStudent = (newStudent: string) => {
-    setStudents((prev) => [...prev, newStudent]);
-  };
 
   return (
     <Box>
@@ -42,6 +134,12 @@ export default function ClubDetails() {
       >
         ← Вернуться к каталогу
       </Button>
+
+      {actionError && (
+        <Alert severity="error" sx={{ mb: 2.5 }}>
+          {actionError}
+        </Alert>
+      )}
 
       <Paper
         elevation={0}
@@ -84,7 +182,7 @@ export default function ClubDetails() {
                   fontSize: 30,
                 }}
               >
-                {club.icon}
+                {getClubIcon(club.name)}
               </Box>
 
               <Box>
@@ -112,8 +210,8 @@ export default function ClubDetails() {
                 lineHeight: 1.7,
               }}
             >
-              Информация о кружке, требования к участникам
-              и контакты преподавателя.
+              {club.description ||
+                'Информация о кружке, требования к участникам и контакты преподавателя.'}
             </Typography>
 
             <Stack
@@ -142,7 +240,84 @@ export default function ClubDetails() {
               />
             </Stack>
 
-            <EnrollForm onEnroll={handleEnrollStudent} />
+            <EnrollForm clubId={club.id} onEnroll={handleEnrollStudent} />
+
+            {isTeacher && (
+              <Stack direction="row" spacing={1.5} sx={{ mt: 2 }}>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={() => setIsEditing(!isEditing)}
+                  sx={{ color: '#76232F', borderColor: '#76232F' }}
+                >
+                  {isEditing ? 'Отменить редактирование' : 'Редактировать кружок'}
+                </Button>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  color="error"
+                  onClick={handleDeleteClub}
+                >
+                  Удалить кружок
+                </Button>
+              </Stack>
+            )}
+
+            <Collapse in={isEditing && isTeacher}>
+              <Box
+                component="form"
+                onSubmit={handleUpdateClub}
+                sx={{
+                  mt: 2.5,
+                  p: 2.5,
+                  maxWidth: 480,
+                  borderRadius: 1.5,
+                  backgroundColor: '#FBF6F0',
+                  border: '1px solid #E8DDD2',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 2,
+                }}
+              >
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#4A2428' }}>
+                  Редактирование данных кружка
+                </Typography>
+                <TextField
+                  label="Название кружка"
+                  size="small"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  disabled={isSaving}
+                  fullWidth
+                />
+                <TextField
+                  label="Преподаватель"
+                  size="small"
+                  value={editTeacher}
+                  onChange={(e) => setEditTeacher(e.target.value)}
+                  disabled={isSaving}
+                  fullWidth
+                />
+                <TextField
+                  label="Описание"
+                  size="small"
+                  multiline
+                  rows={2}
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  disabled={isSaving}
+                  fullWidth
+                />
+                <Button
+                  type="submit"
+                  variant="contained"
+                  disabled={isSaving}
+                  sx={{ backgroundColor: '#76232F', '&:hover': { backgroundColor: '#5A1823' } }}
+                >
+                  Сохранить изменения
+                </Button>
+              </Box>
+            </Collapse>
           </Box>
 
           <Box
@@ -167,34 +342,17 @@ export default function ClubDetails() {
               Кружок
             </Typography>
 
-            <Typography
-              variant="h6"
-              sx={{
-                color: '#4A2428',
-                mb: 2,
-              }}
-            >
+            <Typography variant="h6" sx={{ color: '#4A2428', mb: 2 }}>
               {club.name}
             </Typography>
 
             <Divider sx={{ mb: 2 }} />
 
-            <Typography
-              variant="body2"
-              sx={{
-                color: '#806F70',
-                mb: 0.5,
-              }}
-            >
+            <Typography variant="body2" sx={{ color: '#806F70', mb: 0.5 }}>
               Руководитель
             </Typography>
 
-            <Typography
-              sx={{
-                color: '#443335',
-                fontWeight: 600,
-              }}
-            >
+            <Typography sx={{ color: '#443335', fontWeight: 600 }}>
               {club.teacher}
             </Typography>
           </Box>
@@ -221,20 +379,11 @@ export default function ClubDetails() {
           }}
         >
           <Box>
-            <Typography
-              variant="h6"
-              sx={{ color: '#4A2428' }}
-            >
+            <Typography variant="h6" sx={{ color: '#4A2428' }}>
               Текущие участники
             </Typography>
 
-            <Typography
-              variant="body2"
-              sx={{
-                color: '#806F70',
-                mt: 0.5,
-              }}
-            >
+            <Typography variant="body2" sx={{ color: '#806F70', mt: 0.5 }}>
               Список студентов, записанных в кружок
             </Typography>
           </Box>
@@ -258,12 +407,23 @@ export default function ClubDetails() {
         ) : (
           <List disablePadding>
             {students.map((student, index) => (
-              <Box key={`${student}-${index}`}>
+              <Box key={student.id}>
                 <ListItem
                   sx={{
                     px: { xs: 3, md: 4 },
                     py: 1.5,
                   }}
+                  secondaryAction={
+                    isTeacher ? (
+                      <Button
+                        size="small"
+                        color="error"
+                        onClick={() => handleUnenroll(student.id)}
+                      >
+                        Отчислить
+                      </Button>
+                    ) : null
+                  }
                 >
                   <Box
                     sx={{
@@ -277,7 +437,8 @@ export default function ClubDetails() {
                   </Box>
 
                   <ListItemText
-                    primary={student}
+                    primary={student.full_name}
+                    secondary={`Группа: ${student.group_name}`}
                     primaryTypographyProps={{
                       color: '#443335',
                       fontWeight: 500,
