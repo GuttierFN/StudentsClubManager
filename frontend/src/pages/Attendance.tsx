@@ -1,7 +1,7 @@
 import { Typography, Paper, Button, Box, Divider, Chip, Stack, FormControl, InputLabel, Select, MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Alert, Collapse, CircularProgress } from '@mui/material';
 import { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { useAuth } from '../features/Auth/AuthContext';
+import { useAuth } from "../features/EnrollForm/Auth/AuthContext";
 import { AttendanceItem, Club, TimetableItem } from '../shared/types';
 import { apiGetAttendance, apiGetClubs, apiGetTimetables, apiSaveAttendance } from '../shared/api/clubs';
 
