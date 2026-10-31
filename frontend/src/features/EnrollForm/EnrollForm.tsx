@@ -3,9 +3,9 @@ import { Box, Button, TextField, Collapse, Alert, CircularProgress } from '@mui/
 import { Link } from 'react-router-dom';
 import { EnrollFormProps } from '../../shared/types';
 import { useAuth } from '../Auth/AuthContext';
-import { fetchWithAuth } from '../../shared/api/auth';
+import { apiEnrollStudentToClub } from '../../shared/api/clubs';
 
-export default function EnrollForm({ onEnroll }: EnrollFormProps) {
+export default function EnrollForm({ clubId, onEnroll }: EnrollFormProps) {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [name, setName] = useState('');
@@ -64,17 +64,12 @@ export default function EnrollForm({ onEnroll }: EnrollFormProps) {
     setIsSubmitting(true);
 
     try {
-      await fetchWithAuth('/students/', {
-        method: 'POST',
-        body: JSON.stringify({ full_name: trimmedName, group_name: trimmedGroup }),
-      });
-      onEnroll(trimmedName);
+      const enrolledStudent = await apiEnrollStudentToClub(clubId, trimmedName, trimmedGroup);
+      onEnroll(enrolledStudent);
       setSuccess(true);
       setGroup('');
-    } catch {
-      onEnroll(trimmedName);
-      setSuccess(true);
-      setGroup('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка при записи в кружок');
     } finally {
       setIsSubmitting(false);
     }
@@ -119,7 +114,7 @@ export default function EnrollForm({ onEnroll }: EnrollFormProps) {
           {error && <Alert severity="error">{error}</Alert>}
           {success && (
             <Alert severity="success">
-              Заявка одобрена! Вы добавлены в список участников.
+              Заявка одобрена! Студент записан в кружок в базе данных.
             </Alert>
           )}
 
@@ -135,7 +130,7 @@ export default function EnrollForm({ onEnroll }: EnrollFormProps) {
           />
 
           <TextField
-            label="Учебная группа"
+            label="Учебная группа (например, БПИ2404)"
             variant="outlined"
             size="small"
             value={group}
