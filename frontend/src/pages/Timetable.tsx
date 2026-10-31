@@ -3,7 +3,7 @@ import { Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHe
 import { Link } from 'react-router-dom';
 import { Club, TimetableItem } from '../shared/types';
 import { apiCreateTimetable, apiDeleteTimetable, apiGetClubs, apiGetTimetables, apiUpdateTimetable } from '../shared/api/clubs';
-import { useAuth } from '../features/Auth/AuthContext';
+import { useAuth } from "../features/EnrollForm/Auth/AuthContext";
 
 export default function Timetable() {
   const { user } = useAuth();
