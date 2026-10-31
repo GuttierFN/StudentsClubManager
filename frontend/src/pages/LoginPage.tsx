@@ -1,7 +1,7 @@
 import { useState, FormEvent } from 'react';
 import { Box, Paper, Typography, TextField, Button, Tabs, Tab, Alert, FormControl, InputLabel, Select, MenuItem, CircularProgress } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../features/Auth/AuthContext';
+import { useAuth } from "../features/EnrollForm/Auth/AuthContext";
 import { UserRole } from '../shared/types';
 
 export default function LoginPage() {
