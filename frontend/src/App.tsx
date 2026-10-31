@@ -6,7 +6,7 @@ import ClubDetails from './pages/ClubDetails';
 import Timetable from './pages/Timetable';
 import Attendance from './pages/Attendance';
 import LoginPage from './pages/LoginPage';
-import { AuthProvider } from './features/Auth/AuthContext';
+import { AuthProvider } from './features/EnrollForm/Auth/AuthContext';
 
 const theme = createTheme({
   palette: {
