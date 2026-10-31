@@ -2,20 +2,46 @@ export interface Club {
   id: number;
   name: string;
   teacher: string;
-  icon: string;
+  description?: string | null;
 }
 
-export interface SessionItem {
+export interface ClubPayload {
+  name: string;
+  teacher: string;
+  description?: string | null;
+}
+
+export interface Student {
   id: number;
+  full_name: string;
+  group_name: string;
+}
+
+export interface TimetableItem {
+  id: number;
+  club_id: number;
   date: string;
   time: string;
-  club: string;
   room: string;
-  teacher: string;
+}
+
+export interface TimetablePayload {
+  club_id: number;
+  date: string;
+  time: string;
+  room: string;
+}
+
+export interface AttendanceItem {
+  student_id: number;
+  full_name: string;
+  group_name: string;
+  present: boolean;
 }
 
 export interface EnrollFormProps {
-  onEnroll: (studentName: string) => void;
+  clubId: number;
+  onEnroll: (student: Student) => void;
 }
 
 export type UserRole = 'student' | 'teacher';
