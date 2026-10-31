@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { getClubIcon } from '../entities/club/data';
 import { Club } from '../shared/types';
 import { apiCreateClub, apiGetClubs } from '../shared/api/clubs';
-import { useAuth } from '../features/Auth/AuthContext';
+import { useAuth } from "../features/EnrollForm/Auth/AuthContext";
 
 export default function ClubsList() {
   const { user } = useAuth();
