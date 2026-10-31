@@ -1,6 +1,6 @@
 import { AppBar, Toolbar, Typography, Button, Box, Container, Chip } from '@mui/material';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../features/Auth/AuthContext';
+import { useAuth } from "../features/EnrollForm/Auth/AuthContext";
 
 export default function Navbar() {
   const location = useLocation();
