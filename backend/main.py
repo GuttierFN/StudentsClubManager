@@ -9,15 +9,8 @@ import crud
 import models
 import schemas
 from config import CORS_ORIGINS, JWT_SECRET_KEY, JWT_ALGORITHM
-from database import Base, engine, get_db
-from auth import (
-    hash_password,
-    verify_password,
-    create_access_token,
-    create_refresh_token,
-    get_current_user,
-    require_teacher,
-)
+from database import Base, SessionLocal, engine, get_db
+from auth import (hash_password, verify_password, create_access_token, create_refresh_token, get_current_user, require_teacher )
 
 app = FastAPI(title="Students Club Manager API", version="2.0")
 app.add_middleware(
@@ -28,22 +21,104 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+def seed_initial_data():
+    db = SessionLocal()
+    try:
+        if db.query(models.Club).count() > 0:
+            return
+
+        clubs_data = [
+            models.Club(
+                name="Футбол",
+                teacher="Сенов Д. C.",
+                description="Тренировки сборной университета по мини-футболу и подготовка к межвузовским турнирам.",
+            ),
+            models.Club(
+                name="Баскетбол",
+                teacher="Гутиеррес - Камблор А. А.",
+                description="Командные тренировки по баскетболу, отработка тактики и товарищеские матчи.",
+            ),
+            models.Club(
+                name="Пение",
+                teacher="Манолиу Д. Д.",
+                description="Вокальная студия: постановка голоса, сольное и ансамблевое исполнение.",
+            ),
+            models.Club(
+                name="Лёгкая атлетика",
+                teacher="Махонин И. Д.",
+                description="Беговые дисциплины, общая физическая подготовка и участие в студенческих забегах.",
+            ),
+            models.Club(
+                name="Воллейбол",
+                teacher="Дышенко В. С.",
+                description="Секция классического волейбола для студентов всех курсов.",
+            ),
+            models.Club(
+                name="Шахматы",
+                teacher="Бобров А. Д.",
+                description="Шахматный клуб: разбор партий, теория дебютов и регулярные блиц-турниры.",
+            ),
+            models.Club(
+                name="Танцы",
+                teacher="Гутиеррес - Камблор А. А.",
+                description="Современная хореография и постановка номеров для университетских мероприятий.",
+            ),
+        ]
+        db.add_all(clubs_data)
+        db.flush()
+
+        students_data = [
+            models.Student(full_name="Гасанов К. У.", group_name="БПИ2404"),
+            models.Student(full_name="Гутник Е. И.", group_name="БПИ2404"),
+            models.Student(full_name="Еременко Г. К.", group_name="БПИ2404"),
+            models.Student(full_name="Орлов А. Н.", group_name="БПИ2404"),
+            models.Student(full_name="Печерский Д. А.", group_name="БПИ2404"),
+            models.Student(full_name="Капранов В. С.", group_name="БПИ2404"),
+            models.Student(full_name="Лазарев Р. Н.", group_name="БПИ2404"),
+        ]
+        db.add_all(students_data)
+        db.flush()
+
+        for club in clubs_data:
+            for student in students_data:
+                db.add(models.Enrollment(club_id=club.id, student_id=student.id))
+
+        club_by_name = {c.name: c.id for c in clubs_data}
+        timetables_data = [
+            models.Timetable(club_id=club_by_name["Баскетбол"], date="15.10.2026", time="18:00", room="Ауд. 301"),
+            models.Timetable(club_id=club_by_name["Воллейбол"], date="16.10.2026", time="16:00", room="Ауд. 101"),
+            models.Timetable(club_id=club_by_name["Шахматы"], date="15.10.2026", time="15:30", room="Ауд. 410"),
+            models.Timetable(club_id=club_by_name["Лёгкая атлетика"], date="25.10.2026", time="17:00", room="Ауд. 201"),
+            models.Timetable(club_id=club_by_name["Футбол"], date="20.10.2026", time="20:00", room="Ауд. 212"),
+            models.Timetable(club_id=club_by_name["Пение"], date="18.10.2026", time="19:00", room="Ауд. 310"),
+            models.Timetable(club_id=club_by_name["Танцы"], date="16.10.2026", time="16:30", room="Ауд. 202"),
+        ]
+        db.add_all(timetables_data)
+        db.commit()
+    finally:
+        db.close()
+
+
 @app.on_event("startup")
 def create_tables():
     Base.metadata.create_all(bind=engine)
+    seed_initial_data()
+
 
 def get_or_404(db: Session, model, record_id: int, title: str):
     record = crud.get_by_id(db, model, record_id)
     if record is None:
         raise HTTPException(status_code=404, detail=f"{title} не найден(а)")
     return record
-
+    
 def create_with_conflict_check(db: Session, model, values: dict, message: str):
     try:
         return crud.create(db, model, values)
     except IntegrityError:
         db.rollback()
         raise HTTPException(status_code=409, detail=message)
+
 
 @app.get("/")
 def root():
@@ -66,6 +141,7 @@ def register(user_data: schemas.UserRegister, db: Session = Depends(get_db)):
     db.refresh(new_user)
     return new_user
 
+
 @app.post("/auth/login", response_model=schemas.TokenResponse)
 def login(credentials: schemas.UserLogin, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.username == credentials.username).first()
@@ -84,6 +160,7 @@ def login(credentials: schemas.UserLogin, db: Session = Depends(get_db)):
         "token_type": "bearer",
         "user": user,
     }
+
 
 @app.post("/auth/refresh", response_model=schemas.AccessTokenResponse)
 def refresh_access_token(body: schemas.RefreshRequest, db: Session = Depends(get_db)):
@@ -114,6 +191,7 @@ def refresh_access_token(body: schemas.RefreshRequest, db: Session = Depends(get
     new_access_token = create_access_token(user)
     return {"access_token": new_access_token, "token_type": "bearer"}
 
+
 @app.post("/auth/logout")
 def logout(body: schemas.RefreshRequest, db: Session = Depends(get_db)):
     db_token = (
@@ -125,6 +203,7 @@ def logout(body: schemas.RefreshRequest, db: Session = Depends(get_db)):
         db_token.is_revoked = True
         db.commit()
     return {"message": "Сессия завершена, refresh token отозван"}
+
 
 @app.get("/auth/me", response_model=schemas.UserResponse)
 def get_me(current_user: models.User = Depends(get_current_user)):
@@ -138,6 +217,7 @@ def create_club(
 ):
     return create_with_conflict_check(db, models.Club, payload.model_dump(), "Кружок с таким названием уже существует")
 
+
 @app.get("/clubs/", response_model=list[schemas.ClubResponse])
 def get_clubs(
     skip: int = Query(default=0, ge=0),
@@ -146,9 +226,11 @@ def get_clubs(
 ):
     return crud.get_list(db, models.Club, skip, limit)
 
+
 @app.get("/clubs/{club_id}", response_model=schemas.ClubResponse)
 def get_club(club_id: int, db: Session = Depends(get_db)):
     return get_or_404(db, models.Club, club_id, "Кружок")
+
 
 @app.put("/clubs/{club_id}", response_model=schemas.ClubResponse)
 def update_club(
@@ -164,6 +246,7 @@ def update_club(
         db.rollback()
         raise HTTPException(status_code=409, detail="Кружок с таким названием уже существует")
 
+
 @app.delete("/clubs/{club_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_club(
     club_id: int,
@@ -178,7 +261,18 @@ def create_student(
     db: Session = Depends(get_db),
     _: models.User = Depends(get_current_user),
 ):
+    existing = (
+        db.query(models.Student)
+        .filter(
+            models.Student.full_name == payload.full_name,
+            models.Student.group_name == payload.group_name,
+        )
+        .first()
+    )
+    if existing:
+        return existing
     return crud.create(db, models.Student, payload.model_dump())
+
 
 @app.get("/students/", response_model=list[schemas.StudentResponse])
 def get_students(
@@ -187,6 +281,7 @@ def get_students(
 ):
     return crud.get_list(db, models.Student)
 
+
 @app.get("/students/{student_id}", response_model=schemas.StudentResponse)
 def get_student(
     student_id: int,
@@ -194,6 +289,7 @@ def get_student(
     _: models.User = Depends(get_current_user),
 ):
     return get_or_404(db, models.Student, student_id, "Студент")
+
 
 @app.put("/students/{student_id}", response_model=schemas.StudentResponse)
 def update_student(
@@ -204,6 +300,7 @@ def update_student(
 ):
     student = get_or_404(db, models.Student, student_id, "Студент")
     return crud.update(db, student, payload.model_dump())
+
 
 @app.delete("/students/{student_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_student(
@@ -222,13 +319,16 @@ def create_timetable(
     get_or_404(db, models.Club, payload.club_id, "Кружок")
     return crud.create(db, models.Timetable, payload.model_dump())
 
+
 @app.get("/timetables/", response_model=list[schemas.TimetableResponse])
 def get_timetables(db: Session = Depends(get_db)):
     return crud.get_list(db, models.Timetable)
 
+
 @app.get("/timetables/{timetable_id}", response_model=schemas.TimetableResponse)
 def get_timetable(timetable_id: int, db: Session = Depends(get_db)):
     return get_or_404(db, models.Timetable, timetable_id, "Занятие")
+
 
 @app.put("/timetables/{timetable_id}", response_model=schemas.TimetableResponse)
 def update_timetable(
@@ -240,6 +340,7 @@ def update_timetable(
     lesson = get_or_404(db, models.Timetable, timetable_id, "Занятие")
     get_or_404(db, models.Club, payload.club_id, "Кружок")
     return crud.update(db, lesson, payload.model_dump())
+
 
 @app.delete("/timetables/{timetable_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_timetable(
@@ -253,6 +354,7 @@ def delete_timetable(
 def get_club_students(club_id: int, db: Session = Depends(get_db)):
     get_or_404(db, models.Club, club_id, "Кружок")
     return crud.club_students(db, club_id)
+
 
 @app.post(
     "/clubs/{club_id}/enrollments",
@@ -281,12 +383,13 @@ def enroll_student(
         "Студент уже записан в этот кружок",
     )
 
+
 @app.delete("/clubs/{club_id}/enrollments/{student_id}", status_code=status.HTTP_204_NO_CONTENT)
 def unenroll_student(
     club_id: int,
     student_id: int,
     db: Session = Depends(get_db),
-    _: models.User = Depends(get_current_user),
+    _: models.User = Depends(require_teacher),
 ):
     enrollment = (
         db.query(models.Enrollment)
@@ -296,6 +399,7 @@ def unenroll_student(
     if enrollment is None:
         raise HTTPException(status_code=404, detail="Запись студента в кружок не найдена")
     crud.delete(db, enrollment)
+
 
 @app.get(
     "/timetables/{timetable_id}/attendance",
@@ -308,6 +412,7 @@ def get_attendance(
 ):
     lesson = get_or_404(db, models.Timetable, timetable_id, "Занятие")
     return crud.attendance_for_lesson(db, lesson)
+
 
 @app.put(
     "/timetables/{timetable_id}/attendance",
