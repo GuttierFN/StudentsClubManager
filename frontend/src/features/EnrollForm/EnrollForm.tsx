@@ -2,7 +2,7 @@ import { useState, FormEvent, useEffect } from 'react';
 import { Box, Button, TextField, Collapse, Alert, CircularProgress } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { EnrollFormProps } from '../../shared/types';
-import { useAuth } from "../features/EnrollForm/Auth/AuthContext";
+import { useAuth } from "./Auth/AuthContext";
 import { apiEnrollStudentToClub } from '../../shared/api/clubs';
 
 export default function EnrollForm({ clubId, onEnroll }: EnrollFormProps) {
