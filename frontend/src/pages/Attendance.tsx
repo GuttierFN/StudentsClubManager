@@ -259,7 +259,7 @@ export default function Attendance() {
 
           <Collapse in={isSaved}>
             <Alert severity="success" sx={{ mb: 3 }}>
-              Данные о посещаемости для занятия «{selectedClub?.name}» успешно сохранены в PostgreSQL!
+              Данные о посещаемости для занятия «{selectedClub?.name}» успешно сохранены!
             </Alert>
           </Collapse>
 
